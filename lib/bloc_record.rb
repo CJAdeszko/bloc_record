@@ -1,10 +1,10 @@
 module BlocRecord
 
   def self.connect_to(filename)
-    @datatbase_filename = filename
+    @database_filename = filename
   end
 
-  def self.datatbase_filename
-    @datatbase_filename
+  def self.database_filename
+    @database_filename
   end
 end
