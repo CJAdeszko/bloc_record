@@ -8,8 +8,6 @@ module Schema
   end
 
   def schema
-    puts "table"
-    print table
     unless @schema
       @schema = {}
       connection.table_info(table) do |col|
