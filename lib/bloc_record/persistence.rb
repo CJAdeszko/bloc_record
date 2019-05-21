@@ -105,23 +105,55 @@ module Persistence
     end
 
 
-    def update(ids, updates)
-      updates = BlocRecord::Utility.convert_keys(updates)
-      updates.delete "id"
-      updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
+    #Method Missing
+    def method_missing(m, *args, &block)
+      attribute = m.split('_').slice(1, m.length).join('_')
+      value = args.first.to_s
+      update_attribute(attribute, value)
+    end
 
-      if ids.class == Fixnum
+
+    def update(ids, updates)
+      if ids.class == Array && updates.class == Array
+        updates_array = []
+
+        updates.each.with_index do |record, index|
+          updates[index] = BlocRecord::Utility.convert_keys(record)
+          updates.delete "id"
+
+          records = record.to_a
+
+          records.each_with_index do |attribute, index|
+            records[index] = "#{attribute[0]} =#{BlocRecord::Utility.sql_strings(attribute[1])}"
+          end
+
+          updates_array << records
+        end
+      else
+        updates = BlocRecord::Utility.convert_keys(updates)
+        updates.delete "id"
+        updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
+      end
+
+      if ids.class == Integer
         where_clause = "WHERE id = #{ids};"
       elsif ids.class == Array
-        where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(",")});"
+        where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(", ")});"
       else
         where_clause = ";"
       end
 
-      connection.execute <<-SQL
-        UPDATE #{table}
-        SET #{updates_array * ","} #{where_clause}
-      SQL
+      if updates.class == Array
+        updates_array.each_with_index do |update, index|
+          connection.execute <<-SQL
+            UPDATE #{table} SET #{update[0..update.length].join(", ")} WHERE id = #{ids[index]}
+          SQL
+        end
+      else
+        connection.execute <<-SQL
+          UPDATE #{table} SET #{updates_array * ","} #{where_clause}
+        SQL
+      end
 
       true
     end
