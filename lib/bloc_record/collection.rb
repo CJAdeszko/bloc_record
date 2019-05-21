@@ -7,23 +7,21 @@ module BlocRecord
 
 
     def take
-      #Person.where(first_name: 'John').take
+      #Collection.where(first_name: 'Jim').take
       self.any? ? self.class.take : false
-      
+    end
+
+
+    def not(attributes)
+      #Person.where.not(first_name: 'John');
+      attributes["NOT #{attributes.keys.first}"] = attributes.delete attributes.keys.first
+      self.class.where(attributes)
     end
 
 
     def where(attributes)
-      #Person.where(first_name: 'John').where(last_name: 'Smith')
-      self.any? ? self.first.class.where(attributes)
-
-    end
-
-
-    def not(args)
-      #Person.where.not(first_name: 'John')
-
-      self.any? ? self.class.where()
+      #Collection.where(first_name: 'Jim').where(last_name: 'Halpert')
+      self.any? ? self.first.class.where(attributes) : false
     end
   end
 end
