@@ -40,22 +40,14 @@ module Associations
   end
 
 
-  # class Entry
-  #   has_one :address_book
-  # end
-
-  # Entry.address_book
-  #
-  # SELECT * FROM address_book
-  # WHERE entry.address_book_id = address_book.id
-
   def has_one(association)
     association_name = association.to_s
     define_method(association) do
       row = self.class.connection.get_first_row <<-SQL
         SELECT * FROM #{association_name}
-        WHERE #{association_name.tableize}.id = #{self.class.to_s.downcase}.#{association_name.tablize}_id;
+        WHERE #{association_name.tableize}.id = #{self.send(association_name + "_id")}
       SQL
+
     end
 
     class_name = association_name.classify.constantize
