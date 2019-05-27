@@ -8,4 +8,8 @@ module BlocRecord
   def self.database_filename
     @database_filename
   end
+
+  def self.platform
+    @platform
+  end
 end
