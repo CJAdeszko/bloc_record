@@ -44,10 +44,60 @@ module Persistence
   end
 
 
+  def destroy
+    self.class.destroy(self.id)
+  end
+
+
   #CLASS METHODS
   module ClassMethods
     def update_all(updates)
       update(nil, updates)
+    end
+
+
+    def destroy(*id)
+      if id.length > 1
+        where_clause = "WHERE id IN (#{id.join(",")});"
+      else
+        where_clause = "WHERE id = #{id.first};"
+      end
+
+      connection.execute <<-SQL
+        DELETE FROM #{table} #{where_clause}
+      SQL
+
+      true
+    end
+
+
+    def destroy_all(conditions_hash=nil)
+      if !conditions_hash.empty?
+        if conditions_hash.is_a?(Hash)
+          conditions_hash = convert_keys(conditions_hash)
+          conditions = conditions_hash.map {|key, value| "#{key}=#{sql_strings(value)}"}.join(" and ")
+        elsif conditions_hash.is_a?(String)
+          conditions = conditions_hash
+        elsif conditions_hash.is_a?(Array)
+          i = 0
+          loop do
+            conditions = conditions_hash[i].gsub(/\?/, "'#{conditions_hash[i+1]}'")
+            i += 2
+            break if i == conditions_hash.length
+          end
+        end
+
+        connection.execute <<-SQL
+          DELETE FROM #{table}
+          WHERE #{conditions};
+        SQL
+      else
+        connection.execute <<-SQL
+          DELETE FROM #{table}
+        SQL
+      end
+
+      true
     end
 
 
