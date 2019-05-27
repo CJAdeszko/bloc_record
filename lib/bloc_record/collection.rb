@@ -6,6 +6,12 @@ module BlocRecord
     end
 
 
+    def destroy_all(conditions_hash=nil)
+      ids = self.map(&:id)
+      self.any? ? self.first.class.destroy(ids) : false
+    end
+
+
     def take
       self.any? ? self.class.take : false
     end
